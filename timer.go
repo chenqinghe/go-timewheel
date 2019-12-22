@@ -133,7 +133,7 @@ func (tw *TimeWheel) Start() {
 }
 
 func (tw *TimeWheel) tickGenerator() {
-	if tw.tickQueue != nil {
+	if tw.tickQueue == nil {
 		return
 	}
 
@@ -151,7 +151,7 @@ func (tw *TimeWheel) tickGenerator() {
 
 func (tw *TimeWheel) schduler() {
 	queue := tw.ticker.C
-	if tw.tickQueue == nil {
+	if tw.tickQueue != nil {
 		queue = tw.tickQueue
 	}
 
@@ -177,8 +177,9 @@ func (tw *TimeWheel) Stop() {
 }
 
 func (tw *TimeWheel) collectTask(task *Task) {
+	index:= tw.bucketIndexes[task.id]
 	delete(tw.bucketIndexes, task.id)
-	delete(tw.buckets[tw.currentIndex], task.id)
+	delete(tw.buckets[index], task.id)
 
 	if tw.syncPool {
 		defaultTaskPool.put(task)
@@ -274,7 +275,6 @@ func (tw *TimeWheel) store(task *Task, circleMode bool) {
 	} else {
 		task.round = round
 	}
-
 	tw.bucketIndexes[task.id] = index
 	tw.buckets[index][task.id] = task
 }
